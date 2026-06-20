@@ -1,0 +1,326 @@
+@import "tailwindcss";
+
+:root {
+  --bg-deep: #0a0a1a;
+  --bg-card: #141428;
+  --gold: #d4a853;
+  --amber: #ff6b35;
+  --indigo: #4B0082;
+  --emerald: #2ECC71;
+  --purple: #7B2D8E;
+  --text-primary: #e8e0d0;
+  --text-muted: #8a8578;
+  --border: #2a2530;
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-devanagari: 'Noto Sans Devanagari', 'Noto Serif', serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+body {
+  min-height: 100dvh;
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Telegram Mini App container */
+.tg-safe {
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Card / Temple surfaces */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.card-header {
+  background: linear-gradient(135deg, #1a1025, #1a1a2e);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-muted);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.card-body {
+  padding: 24px 20px;
+}
+
+.sanskrit {
+  font-family: var(--font-devanagari);
+  font-size: 23px;
+  line-height: 1.55;
+  color: var(--gold);
+  text-align: center;
+  white-space: pre-line;
+}
+
+.iast {
+  font-family: 'Noto Serif', serif;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  font-style: italic;
+  margin-top: 8px;
+}
+
+.english {
+  font-size: 15px;
+  color: var(--text-primary);
+  text-align: center;
+  font-style: italic;
+  margin-top: 14px;
+  line-height: 1.4;
+}
+
+/* Language tabs */
+.lang-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin: 16px 0 8px;
+}
+
+.lang-btn {
+  background: #1e1a2a;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.lang-btn.selected,
+.lang-btn:active {
+  background: var(--gold);
+  color: #111;
+  border-color: var(--gold);
+}
+
+.trans-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 15px;
+  transition: transform 0.05s ease, background 0.1s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.btn-primary {
+  background: var(--amber);
+  color: #111;
+}
+
+.btn-primary:active {
+  transform: scale(0.985);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold), #b8860b);
+  color: #111;
+}
+
+/* Streak */
+.streak-flame {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  color: var(--amber);
+}
+
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #1e1a2a;
+  font-size: 12px;
+  color: var(--gold);
+  border: 1px solid var(--border);
+}
+
+/* Game tiles */
+.tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  min-height: 42px;
+  padding: 6px 10px;
+  background: #1f1c2e;
+  border: 2px solid var(--gold);
+  border-radius: 10px;
+  font-family: var(--font-devanagari);
+  font-size: 20px;
+  color: var(--gold);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.tile:active {
+  cursor: grabbing;
+  transform: scale(1.03);
+}
+
+.slot {
+  min-width: 42px;
+  min-height: 42px;
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-devanagari);
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.02);
+}
+
+.slot.filled {
+  border-style: solid;
+  border-color: var(--gold);
+  background: #1a1628;
+}
+
+/* Bottom nav */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 480px;
+  margin: 0 auto;
+  background: #11101a;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+  z-index: 50;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 4px 12px;
+}
+
+.nav-item.active {
+  color: var(--gold);
+}
+
+/* Quiz */
+.quiz-option {
+  background: #1e1a2a;
+  border: 1px solid var(--border);
+  padding: 14px 16px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all .1s;
+}
+
+.quiz-option:hover,
+.quiz-option.selected {
+  border-color: var(--gold);
+  background: #25223a;
+}
+
+.quiz-option.correct {
+  background: #11331f;
+  border-color: var(--emerald);
+}
+
+.quiz-option.wrong {
+  background: #3a1f1f;
+  border-color: #c33;
+}
+
+/* Dashboard */
+.dashboard-header {
+  padding: 16px 20px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title {
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin: 12px 0 6px 4px;
+  text-transform: uppercase;
+}
+
+/* Temple / Garden */
+.map-pin {
+  fill: var(--gold);
+  stroke: #fff;
+  stroke-width: 1;
+}
+
+.garden-plant {
+  transition: transform 300ms ease;
+}
+
+/* Misc */
+hr.divider {
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border), transparent);
+  margin: 18px 0;
+}
+
+.text-gold { color: var(--gold); }
+.text-amber { color: var(--amber); }
+.text-muted { color: var(--text-muted); }
+
+.mono { font-family: var(--font-mono); font-size: 12px; }
