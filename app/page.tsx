@@ -68,12 +68,21 @@ export default function Dashboard() {
 
         {/* Card */}
         {loading ? (
-          <div className="card mx-auto h-72 max-w-[480px] animate-pulse bg-[#141428]" />
+          <WisdomCard
+            mantra={{ id: '', devanagari: '', source: '' }}
+            translations={{}}
+            isLoading
+          />
         ) : card ? (
-          <Link href={`/cards/${(card as any).id /* eslint-disable-line @typescript-eslint/no-explicit-any */}`}>
+          <Link href={`/cards/${String((card as unknown as {id?:string}).id || '')}`}>
             <WisdomCard
-              mantra={{ id: (card as any).id /* eslint-disable-line @typescript-eslint/no-explicit-any */, devanagari: (card as any).devanagari /* eslint-disable-line */, iast: (card as any).iast /* eslint-disable-line */, source: (card as any).source /* eslint-disable-line */ }}
-              translations={(card as any).translations || {} /* eslint-disable-line @typescript-eslint/no-explicit-any */}
+              mantra={{
+                id: String((card as unknown as {id?:string}).id || ''),
+                devanagari: String((card as unknown as {devanagari?:string}).devanagari || ''),
+                iast: (card as unknown as {iast?:string}).iast,
+                source: String((card as unknown as {source?:string}).source || ''),
+              }}
+              translations={(card as unknown as {translations?: Record<string,string>}).translations || {}}
             />
           </Link>
         ) : null}

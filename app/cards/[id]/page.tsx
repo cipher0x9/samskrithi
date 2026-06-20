@@ -22,10 +22,16 @@ export default function CardViewer() {
       <div className="pt-4">
         {card ? (
           <WisdomCard
-            mantra={{ id: (card as any).id, devanagari: (card as any).devanagari, iast: (card as any).iast, english: (card as any).english, source: (card as any).source }} // eslint-disable-line @typescript-eslint/no-explicit-any
-            translations={(card as any).translations || {}} // eslint-disable-line @typescript-eslint/no-explicit-any
+            mantra={{
+              id: String((card as unknown as {id?: string}).id || ''),
+              devanagari: String((card as unknown as {devanagari?: string}).devanagari || ''),
+              iast: (card as unknown as {iast?: string}).iast,
+              english: (card as unknown as {english?: string}).english,
+              source: String((card as unknown as {source?: string}).source || ''),
+            }}
+            translations={(card as unknown as {translations?: Record<string, string>}).translations || {}}
             onSave={() => {
-              // optimistic save stub
+              // TODO: POST /api/cards/save + optimistic
             }}
           />
         ) : (

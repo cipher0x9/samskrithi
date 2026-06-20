@@ -6,6 +6,7 @@ const ALL_LANGS = [
   { code: 'en', label: 'EN' }, { code: 'hi', label: 'हि' }, { code: 'te', label: 'తె' },
   { code: 'ta', label: 'த' }, { code: 'id', label: 'ID' }, { code: 'pt', label: 'PT' },
   { code: 'ru', label: 'RU' }, { code: 'th', label: 'ไทย' }, { code: 'vi', label: 'VI' },
+  { code: 'tl', label: 'TL' }, { code: 'bn', label: 'বাং' }, { code: 'ne', label: 'ने' }, { code: 'si', label: 'සි' },
 ];
 
 interface Props {

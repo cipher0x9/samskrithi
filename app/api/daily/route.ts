@@ -6,7 +6,12 @@ import type { DailyPayload } from '@/lib/panchanga';
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 
-// Real authentic content from corpus — gita-2.47 (never invented)
+/**
+ * GET /api/daily?date=YYYY-MM-DD
+ * Public-ish daily payload. Optional initData for user personalization (streak etc).
+ * Returns panchanga + free_card (with 14-lang translations when available) + 3 challenges + user.
+ * Mocks always available for dev without Supabase.
+ */
 const AUTHENTIC_GITA_247 = {
   id: 'gita-2.47',
   devanagari: 'कर्मण्येवाधिकारस्ते मा फलेषु कदाचन। मा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि।।2.47।।',
@@ -22,6 +27,13 @@ const MOCK_TRANSLATIONS: Record<string, string> = {
   ta: 'உனக்கு வேலை செய்ய உரிமை உண்டு; ஆனால் அதன் பலன்களுக்கு அல்ல.',
   id: 'Kamu hanya berhak bekerja, tetapi tidak untuk hasilnya.',
   pt: 'Tens o direito de agir, mas nunca aos frutos da ação.',
+  ru: 'У тебя есть право на действие, но не на плоды действия.',
+  th: 'เจ้ามีสิทธิ์กระทำกรรม แต่ไม่ใช่เพื่อผลของกรรม',
+  vi: 'Ngươi có quyền hành động, nhưng không phải vì quả của hành động.',
+  tl: 'May karapatan kang kumilos ngunit hindi para sa bunga nito.',
+  bn: 'কর্ম করার অধিকার আছে, ফলের অধিকার নেই।',
+  ne: 'कर्म गर्न अधिकार छ, फलमा होइन।',
+  si: 'කර්මය කිරීමට අයිතියක් ඇති නමුත් ඵලයට නොවේ.',
 };
 
 export async function GET(req: NextRequest) {
@@ -34,15 +46,9 @@ export async function GET(req: NextRequest) {
   let translations: Record<string, string> = { ...MOCK_TRANSLATIONS };
 
   try {
-    // Try real panchanga
-    const pRes = await supabaseServer
-      .from('panchanga')
-      .select('*')
-      .eq('date', dateStr)
-      .maybeSingle();
+    const pRes = await supabaseServer.from('panchanga').select('*').eq('date', dateStr).maybeSingle();
     if (pRes.data) panchanga = pRes.data;
 
-    // Try real mantra (prefer gita)
     const mRes = await supabaseServer
       .from('mantras')
       .select('id,devanagari,iast,english,source')
@@ -51,20 +57,15 @@ export async function GET(req: NextRequest) {
 
     if (mRes.data) {
       card = mRes.data;
-      const tRes = await supabaseServer
-        .from('translations')
-        .select('lang,text')
-        .eq('content_id', card.id);
-      if (tRes.data && tRes.data.length) {
+      const tRes = await supabaseServer.from('translations').select('lang,text').eq('content_id', (card as any).id); // eslint-disable-line @typescript-eslint/no-explicit-any
+      if (tRes.data?.length) {
         translations = {};
         (tRes.data as { lang: string; text: string }[]).forEach((t) => (translations[t.lang] = t.text));
       }
     } else {
-      // Use embedded authentic
       card = AUTHENTIC_GITA_247;
     }
   } catch {
-    // DB unavailable → full mock with real verse
     card = AUTHENTIC_GITA_247;
   }
 
@@ -93,7 +94,7 @@ export async function GET(req: NextRequest) {
 
   const payload: DailyPayload = {
     date: dateStr,
-    panchanga: ((panchanga as unknown) as import('@/lib/panchanga').Panchanga) || {
+    panchanga: (panchanga as unknown as import('@/lib/panchanga').Panchanga) || {
       date: dateStr,
       tithi: 'कृष्ण नवमी',
       nakshatra: 'अश्विनी',
@@ -107,8 +108,5 @@ export async function GET(req: NextRequest) {
     user: user || { streak_current: 0, xp: 0, level: 'Prarambhika' },
   };
 
-  return NextResponse.json({
-    ...payload,
-    free_card: free_card as DailyPayload['free_card'],
-  });
+  return NextResponse.json(payload);
 }

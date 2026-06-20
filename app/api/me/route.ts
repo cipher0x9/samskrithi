@@ -4,6 +4,11 @@ import { validateInitData } from '@/lib/tg';
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 
+/**
+ * GET /api/me
+ * Requires valid initData. Returns profile + collection + mastered_letters.
+ * Dev mock when no token.
+ */
 export async function GET(req: NextRequest) {
   const initData = req.headers.get('x-telegram-init-data') || '';
 
@@ -27,12 +32,7 @@ export async function GET(req: NextRequest) {
 
   const userId = v.user.id;
 
-  const { data: user } = await supabaseServer
-    .from('users')
-    .select('*')
-    .eq('id', userId)
-    .single();
-
+  const { data: user } = await supabaseServer.from('users').select('*').eq('id', userId).maybeSingle();
   const { data: cards } = await supabaseServer
     .from('user_cards')
     .select('content_id, saved_at')
@@ -44,6 +44,6 @@ export async function GET(req: NextRequest) {
     ok: true,
     user: user || v.user,
     collection: cards || [],
-    mastered: user?.mastered_letters || [],
+    mastered: (user as any)?.mastered_letters || [], // eslint-disable-line @typescript-eslint/no-explicit-any
   });
 }

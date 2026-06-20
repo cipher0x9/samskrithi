@@ -1,4 +1,4 @@
-// SamSkrithi service worker (MVP offline for today's card)
+// SamSkrithi service worker (MVP offline for daily + cards)
 const CACHE = 'samskrithi-v1';
 
 self.addEventListener('install', (e) => {
@@ -12,7 +12,11 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
-  if (url.pathname.startsWith('/api/daily') || url.pathname === '/') {
+  const shouldCache = url.pathname === '/' ||
+    url.pathname.startsWith('/api/daily') ||
+    url.pathname.startsWith('/api/cards/') ||
+    url.pathname.startsWith('/cards/');
+  if (shouldCache) {
     e.respondWith(
       fetch(e.request).then((r) => {
         const copy = r.clone();

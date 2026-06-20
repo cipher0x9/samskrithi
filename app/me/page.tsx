@@ -13,18 +13,18 @@ export default function MePage() {
     fetch('/api/me').then(r => r.json()).then(d => setProfile(d));
   }, []);
 
-  const user = profile?.user || { first_name: 'Seeker', xp: 120, streak_current: 4, level: 'Madhyama' };
+  const user = (profile?.user as any) || { first_name: 'Seeker', xp: 120, streak_current: 4, level: 'Madhyama', tier: 'free' }; // eslint-disable-line @typescript-eslint/no-explicit-any
 
   return (
     <MiniAppShell title="My Profile">
       <div className="pt-4 space-y-4">
         <div className="card p-5">
-          <div className="text-xl">{(user as any).first_name /* eslint-disable-line @typescript-eslint/no-explicit-any */}</div>
+          <div className="text-xl">{user.first_name}</div>
           <div className="mt-2 flex items-center gap-4">
-            <StreakFlame current={(user as any).streak_current /* eslint-disable-line */} />
-            <LevelBadge xp={(user as any).xp /* eslint-disable-line */} />
+            <StreakFlame current={user.streak_current} />
+            <LevelBadge xp={user.xp} />
           </div>
-          <div className="mt-3 text-sm text-[#8a8578]">Tier: {(user as any).tier || 'free' /* eslint-disable-line */} • XP {(user as any).xp /* eslint-disable-line */}</div>
+          <div className="mt-3 text-sm text-[#8a8578]">Tier: {user.tier || 'free'} • XP {user.xp}</div>
         </div>
 
         <div>

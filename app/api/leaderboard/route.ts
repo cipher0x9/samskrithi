@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
 
+/**
+ * GET /api/leaderboard?scope=global|weekly&week=current
+ * Public leaderboard. No auth (public stats).
+ * Falls back to mock when DB unavailable.
+ */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const scope = searchParams.get('scope') || 'global';
@@ -15,33 +20,29 @@ export async function GET(req: NextRequest) {
         .order('xp_week', { ascending: false })
         .limit(20);
 
-      const leaders = (data || []).map((row: Record<string, unknown>, idx: number) => ({
+      const leaders = (data || []).map((row: any, idx: number) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
         rank: idx + 1,
         user_id: row.user_id,
-        first_name: ((row.users as Record<string, unknown>)?.first_name as string) || 'Seeker',
-        xp_week: row.xp_week as number,
+        first_name: (row.users as any)?.first_name || 'Seeker', // eslint-disable-line @typescript-eslint/no-explicit-any
+        xp_week: row.xp_week,
       }));
-
       return NextResponse.json({ scope, week, leaders });
     }
 
-    // global
     const { data } = await supabaseServer
       .from('users')
       .select('id, first_name, username, xp')
       .order('xp', { ascending: false })
       .limit(20);
 
-    const leaders = (data || []).map((u: Record<string, unknown>, idx: number) => ({
+    const leaders = (data || []).map((u: any, idx: number) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
       rank: idx + 1,
       user_id: u.id,
-      first_name: u.first_name as string,
-      xp: u.xp as number,
+      first_name: u.first_name,
+      xp: u.xp,
     }));
-
     return NextResponse.json({ scope: 'global', leaders });
   } catch {
-    // Fallback mock
     return NextResponse.json({
       scope,
       leaders: [
