@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase';
 import { validateInitData } from '@/lib/tg';
-import { getTodayISO } from '@/lib/utils';
+import { getTodayISO, getLocalISODate } from '@/lib/utils';
 import type { DailyPayload } from '@/lib/panchanga';
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 
 /**
- * GET /api/daily?date=YYYY-MM-DD
- * Public-ish daily payload. Optional initData for user personalization (streak etc).
+ * GET /api/daily?date=YYYY-MM-DD&tz_offset=330&initData=...
  * Returns panchanga + free_card (with 14-lang translations when available) + 3 challenges + user.
+ * If tz_offset provided, computes effective local date for panchanga lookup (timezone-aware "today").
  * Mocks always available for dev without Supabase.
  */
 const AUTHENTIC_GITA_247 = {
@@ -38,8 +38,18 @@ const MOCK_TRANSLATIONS: Record<string, string> = {
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const dateStr = searchParams.get('date') || getTodayISO();
-  const initData = req.headers.get('x-telegram-init-data') || req.nextUrl.searchParams.get('initData') || '';
+  const dateParam = searchParams.get('date');
+  const tzStr = searchParams.get('tz_offset');
+  const initData = req.headers.get('x-telegram-init-data') || searchParams.get('initData') || '';
+
+  // Timezone-aware: prefer local date derived from tz_offset (minutes east of UTC)
+  let dateStr: string;
+  if (tzStr) {
+    const off = parseInt(tzStr, 10);
+    dateStr = !isNaN(off) ? getLocalISODate(off) : (dateParam || getTodayISO());
+  } else {
+    dateStr = dateParam || getTodayISO();
+  }
 
   let panchanga: Record<string, unknown> | null = null;
   let card: Record<string, unknown> | null = null;
@@ -85,7 +95,7 @@ export async function GET(req: NextRequest) {
     if (v.ok && v.user) {
       const { data } = await supabaseServer
         .from('users')
-        .select('id, streak_current, xp, level, first_name')
+        .select('id, streak_current, xp, level, first_name, tz_offset, prefs, language_code')
         .eq('id', v.user.id)
         .maybeSingle();
       if (data) user = data;
@@ -105,7 +115,7 @@ export async function GET(req: NextRequest) {
     },
     free_card,
     challenges,
-    user: user || { streak_current: 0, xp: 0, level: 'Prarambhika' },
+    user: user || { streak_current: 0, xp: 0, level: 'Prarambhika', tz_offset: 0, prefs: {} },
   };
 
   return NextResponse.json(payload);

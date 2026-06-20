@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { WisdomCard } from '@/components/Card/WisdomCard';
 import { StreakFlame } from '@/components/Progress/StreakFlame';
@@ -8,41 +8,84 @@ import { LevelBadge } from '@/components/Progress/LevelBadge';
 import { BottomNav } from '@/components/Layout/BottomNav';
 import { MiniAppShell } from '@/components/Layout/MiniAppShell';
 import { getTodayISO } from '@/lib/utils';
+import { needsOnboarding } from '@/lib/utils';
+import { OnboardingFlow } from '@/components/Onboarding/OnboardingFlow';
 import type { DailyPayload } from '@/lib/panchanga';
 
 export default function Dashboard() {
   const [data, setData] = useState<DailyPayload | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tzOffset, setTzOffset] = useState<number | null>(null);
+
+  const getInitData = (): string => {
+    return (
+      (window as { Telegram?: { WebApp?: { initData?: string } } }).Telegram?.WebApp?.initData || ''
+    );
+  };
+
+  const load = useCallback(async (forcedTz?: number) => {
+    setLoading(true);
+    try {
+      const initData = getInitData();
+      const params = new URLSearchParams();
+      params.set('date', getTodayISO());
+      if (initData) params.set('initData', initData);
+      const effTz = forcedTz ?? tzOffset;
+      if (effTz != null) params.set('tz_offset', String(effTz));
+
+      const res = await fetch(`/api/daily?${params.toString()}`);
+      const json = await res.json();
+      setData(json);
+    } catch {
+      const fallbackDate = getTodayISO();
+      setData({
+        date: fallbackDate,
+        panchanga: { date: fallbackDate, tithi: 'कृष्ण नवमी', nakshatra: 'अश्विनी' },
+        free_card: {
+          id: 'gita-2.47',
+          devanagari: 'कर्मण्येवाधिकारस्ते मा फलेषु कदाचन। मा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वkarmāṇi।।2.47।।',
+          iast: 'karmaṇy-evādhikāras te mā phaleṣhu kadāchana mā karma-phala-hetur bhūr mā te saṅgo ’stvakarmaṇi',
+          source: 'Bhagavad Gita 2.47',
+          translations: { en: 'You have the right to work only, but never to its fruits.' },
+        },
+        challenges: [{ mode: 'akshara', seed: 'gita-2.47' }, { mode: 'quiz', seed: 'panchanga' }],
+        user: { streak_current: 0, xp: 0, level: 'Prarambhika', tz_offset: 0, prefs: {} },
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [tzOffset]);
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch(`/api/daily?date=${getTodayISO()}`);
-        const json = await res.json();
-        setData(json);
-      } catch {
-        setData({
-          date: getTodayISO(),
-          panchanga: { date: getTodayISO(), tithi: 'कृष्ण नवमी', nakshatra: 'अश्विनी' },
-          free_card: {
-            id: 'gita-2.47',
-            devanagari: 'कर्मण्येवाधिकारस्ते मा फलेषु कदाचन। मा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि।।2.47।।',
-            iast: 'karmaṇy-evādhikāras te mā phaleṣhu kadāchana mā karma-phala-hetur bhūr mā te saṅgo ’stvakarmaṇi',
-            source: 'Bhagavad Gita 2.47',
-            translations: { en: 'You have the right to work only, but never to its fruits.' },
-          },
-          challenges: [{ mode: 'akshara', seed: 'gita-2.47' }, { mode: 'quiz', seed: 'panchanga' }],
-          user: { streak_current: 0, xp: 0, level: 'Prarambhika' },
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
     load();
-  }, []);
+  }, [load]);
+
+  const handleOnboardComplete = (newTz: number) => {
+    setTzOffset(newTz);
+    // Reload with the new tz so dashboard shows correct local date + panchanga immediately
+    load(newTz);
+  };
 
   const card = data?.free_card;
-  const user = data?.user || { streak_current: 0, xp: 0, level: 'Prarambhika' };
+  const user = (data?.user as any) || { streak_current: 0, xp: 0, level: 'Prarambhika', tz_offset: 0, prefs: {} }; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+  const shouldOnboard = needsOnboarding(user);
+
+  // Local date string for header (uses the tz-resolved date returned by API)
+  const headerDateStr = data?.date
+    ? new Date(data.date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', month: 'short', day: 'numeric' })
+    : new Date().toLocaleDateString('en-IN', { weekday: 'long', month: 'short', day: 'numeric' });
+
+  if (shouldOnboard) {
+    return (
+      <MiniAppShell title="संस्‍कृति • SamSkrithi">
+        <div className="pt-2">
+          <OnboardingFlow onComplete={handleOnboardComplete} initialName={(user as any)?.first_name} />
+        </div>
+        {/* No BottomNav during first-time onboarding */}
+      </MiniAppShell>
+    );
+  }
 
   return (
     <MiniAppShell title="संस्‍कृति • SamSkrithi">
@@ -50,7 +93,7 @@ export default function Dashboard() {
         {/* Header */}
         <div className="dashboard-header">
           <div>
-            <div className="text-xs text-[#8a8578]">{new Date().toLocaleDateString('en-IN', { weekday: 'long', month: 'short', day: 'numeric' })}</div>
+            <div className="text-xs text-[#8a8578]">{headerDateStr}</div>
             <div className="text-2xl font-semibold tracking-tight text-[#d4a853]">Today’s Wisdom</div>
           </div>
           <div className="text-right">

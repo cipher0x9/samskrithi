@@ -93,3 +93,31 @@ Future: UI i18n strings separate from card content.
 - TTS poor for Sanskrit: browser limitation; future: hosted audio.
 
 **सत्यमेव जयते**
+
+---
+
+## 11. Phase 2 Additions (2026-06)
+
+**Core expansions** (see PHASE2-PLAN.md for full spec + delegation logs):
+
+- **Onboarding flow** (`components/Onboarding/*`): Welcome → TZ auto-detect (Intl) + manual → Language → Name. Persists to `users.tz_offset`, `language_code`, `prefs.onboarded`. Gate in dashboard.
+- **Theme system**: 3 themes via `data-theme` on `<html>` + CSS vars in globals.css (Temple Dark default, Saffron Light, Forest Green). `components/Settings/ThemeToggle.tsx`. Persisted in prefs.
+- **Icon system**: lucide-react + custom `components/Icons/Om.tsx` (and cultural SVGs). Gradual emoji reduction.
+- **SamSkrithi Robo** (star): `components/Robo/SamSkrithiRobo.tsx` (CSS keyframes only: float/blink/wave/celebrate) + `WisdomPopup.tsx`. 100+ preloaded authentic facts in `data/wisdom.json` + `lib/wisdom.ts`. Click → popup (lang switch, TTS, next, share). Celebration prop after games.
+- **Timezone-aware daily + Week**: `/api/daily?tz_offset=...` + new `/api/weekly`. `lib/utils.ts:getLocalDateISO`. `components/Dashboard/WeekView.tsx` (7-day horizontal, special markers). Dashboard uses local "today".
+- **Channels hub**: `app/channels/page.tsx` + `ChannelList`. 5 channels (Main/Games/Festivals/Learn/Global). TG deep-link subscribe. Share tracking hooks.
+- **Performance**: Route-level games already split. Added tz fetch, simple cache patterns, font already preloaded. SWR optional only if justified.
+- **DB**: New `wisdom_facts` table (see `docs/migrations/002_wisdom_facts.sql`). Users schema already supported tz/lang/prefs.
+
+**Integration notes**:
+- Dashboard wires Robo + WeekView + onboarding gate.
+- `/api/daily` + utils updated for local date.
+- Robo celebration triggered from game submit success path.
+- Channels reachable via nav or Me.
+- All new UI inside 480px tg-safe, uses existing card + gold/amber language.
+
+**Verification gate**: `npm run build` + `npm run lint` zero-error + smoke (onboard → robo click → theme switch → week tap → channels).
+
+**Delegation model**: Grok (plan + review + integrate). Codex CLI (Robo+wisdom + week+channels+perf). Subagent/Claude (onboard+tz+theme).
+
+See PHASE2-PLAN.md for detailed file map, delegation commands used, and authenticity requirements on wisdom facts.

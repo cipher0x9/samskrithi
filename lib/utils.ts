@@ -29,3 +29,35 @@ export function shuffle<T>(arr: T[]): T[] {
   }
   return a;
 }
+
+/**
+ * Compute ISO date string (YYYY-MM-DD) for the given tz offset (minutes east of UTC).
+ * Client and server use for local "today".
+ */
+export function getLocalDateISO(tzOffsetMin: number): string {
+  const now = new Date();
+  // Convert to "UTC ms" then apply target offset
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  const localMs = utcMs + tzOffsetMin * 60000;
+  return new Date(localMs).toISOString().slice(0, 10);
+}
+
+/** Alias to satisfy explicit task requirement while keeping plan/weekly compatible */
+export const getLocalISODate = getLocalDateISO;
+
+/** Client helper: current device tz offset in minutes east of UTC (e.g. 330 for IST) */
+export function getTzOffset(): number {
+  return -new Date().getTimezoneOffset();
+}
+
+/**
+ * needsOnboarding: show flow if tz never set (default 0) OR onboarded flag not true.
+ * Conservative to avoid false-positive re-onboards.
+ */
+export function needsOnboarding(user?: { tz_offset?: number | null; prefs?: Record<string, unknown> | null }): boolean {
+  if (!user) return false;
+  const tz = typeof user.tz_offset === 'number' ? user.tz_offset : 0;
+  const prefs = (user.prefs || {}) as Record<string, unknown>;
+  const onboarded = prefs.onboarded === true;
+  return tz === 0 || !onboarded;
+}

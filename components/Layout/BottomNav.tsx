@@ -8,8 +8,8 @@ import { Home, Gamepad2, BookOpen, Sprout, User } from 'lucide-react';
 const tabs = [
   { href: '/', label: 'Today', icon: Home },
   { href: '/games', label: 'Games', icon: Gamepad2 },
+  { href: '/channels', label: 'Channels', icon: BookOpen },
   { href: '/garden', label: 'Garden', icon: Sprout },
-  { href: '/temple', label: 'Temple', icon: BookOpen },
   { href: '/me', label: 'Me', icon: User },
 ];
 

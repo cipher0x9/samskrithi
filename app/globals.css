@@ -17,6 +17,50 @@
   --font-devanagari: 'Noto Sans Devanagari', 'Noto Serif', serif;
 }
 
+/* Theme overrides — default (no attr or temple) uses :root (Temple Dark) */
+[data-theme="saffron"] {
+  --bg-deep: #fff8e8;
+  --bg-card: #fff1d6;
+  --gold: #c45c26;
+  --amber: #d97706;
+  --indigo: #854d0e;
+  --emerald: #166534;
+  --purple: #6b21a8;
+  --text-primary: #3f2a1d;
+  --text-muted: #6b5a4a;
+  --border: #e6d5b8;
+}
+
+[data-theme="forest"] {
+  --bg-deep: #0a1a12;
+  --bg-card: #11281e;
+  --gold: #8fbc8f;
+  --amber: #4ade80;
+  --indigo: #14532d;
+  --emerald: #15803d;
+  --purple: #4a044e;
+  --text-primary: #d1e7d8;
+  --text-muted: #6b8a75;
+  --border: #1f3a2e;
+}
+
+/* Smooth theme + surface transitions */
+html {
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.card,
+.btn,
+.bottom-nav,
+.dashboard-header,
+.lang-btn,
+.quiz-option,
+.tile,
+.slot,
+.level-badge {
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -59,6 +103,11 @@ body {
   color: var(--text-muted);
   font-size: 11px;
   letter-spacing: 0.5px;
+}
+
+[data-theme="saffron"] .card-header,
+[data-theme="forest"] .card-header {
+  background: linear-gradient(135deg, rgba(0,0,0,0.04), rgba(0,0,0,0.08));
 }
 
 .card-body {
@@ -119,6 +168,13 @@ body {
   border-color: var(--gold);
 }
 
+[data-theme="saffron"] .lang-btn {
+  background: #f5e9d0;
+}
+[data-theme="forest"] .lang-btn {
+  background: #0f221a;
+}
+
 .trans-box {
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid var(--border);
@@ -128,6 +184,10 @@ body {
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-primary);
+}
+
+[data-theme="saffron"] .trans-box {
+  background: rgba(0,0,0,0.04);
 }
 
 /* Buttons */
@@ -185,6 +245,11 @@ body {
   border: 1px solid var(--border);
 }
 
+[data-theme="saffron"] .level-badge,
+[data-theme="forest"] .level-badge {
+  background: rgba(0,0,0,0.06);
+}
+
 /* Game tiles */
 .tile {
   display: flex;
@@ -207,6 +272,13 @@ body {
 .tile:active {
   cursor: grabbing;
   transform: scale(1.03);
+}
+
+[data-theme="saffron"] .tile {
+  background: #f5e9d0;
+}
+[data-theme="forest"] .tile {
+  background: #0f221a;
 }
 
 .slot {
@@ -242,6 +314,13 @@ body {
   justify-content: space-around;
   padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
   z-index: 50;
+}
+
+[data-theme="saffron"] .bottom-nav {
+  background: #f8f1e3;
+}
+[data-theme="forest"] .bottom-nav {
+  background: #0c1913;
 }
 
 .nav-item {
@@ -284,6 +363,17 @@ body {
   border-color: #c33;
 }
 
+[data-theme="saffron"] .quiz-option {
+  background: #f5e9d0;
+}
+[data-theme="saffron"] .quiz-option:hover,
+[data-theme="saffron"] .quiz-option.selected {
+  background: #f0e0c5;
+}
+[data-theme="forest"] .quiz-option {
+  background: #0f221a;
+}
+
 /* Dashboard */
 .dashboard-header {
   padding: 16px 20px 12px;
@@ -324,3 +414,47 @@ hr.divider {
 .text-muted { color: var(--text-muted); }
 
 .mono { font-family: var(--font-mono); font-size: 12px; }
+
+/* PHASE 2 THEMES */
+html { transition: background 220ms ease, color 220ms ease; }
+
+[data-theme="saffron"] {
+  --bg-deep: #fff8e8;
+  --bg-card: #fff1d6;
+  --gold: #c45c26;
+  --amber: #e07a3d;
+  --text-primary: #2c2118;
+  --text-muted: #6b5a46;
+  --border: #e8d9c0;
+}
+
+[data-theme="forest"] {
+  --bg-deep: #0d2818;
+  --bg-card: #132f20;
+  --gold: #8fbc8f;
+  --amber: #50c878;
+  --text-primary: #e6f0e6;
+  --text-muted: #8aa38a;
+  --border: #2a4633;
+}
+
+/* Robo styles (scoped via global for keyframe reach) */
+#robo .robo { box-shadow: 0 4px 14px rgba(0,0,0,0.45), inset 0 -8px 12px rgba(0,0,0,0.2); }
+
+/* Onboarding extras (kept in globals for reuse) */
+.onboard-progress {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 12px 0;
+}
+.onboard-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+}
+.onboard-dot.active {
+  background: var(--gold);
+  width: 22px;
+}

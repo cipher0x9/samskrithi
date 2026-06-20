@@ -37,6 +37,7 @@ export default function RootLayout({
   return (
     <html
       lang="sa"
+      data-theme="temple"
       className={`${geistSans.variable} ${geistMono.variable} ${notoDev.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#0a0a1a] text-[#e8e0d0]">

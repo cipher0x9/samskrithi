@@ -38,5 +38,9 @@ export interface DailyPayload {
     streak_current: number;
     xp: number;
     level: string;
+    tz_offset?: number;
+    language_code?: string;
+    first_name?: string;
+    prefs?: Record<string, unknown>;
   } | null;
 }
