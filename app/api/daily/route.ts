@@ -54,29 +54,50 @@ export async function GET(req: NextRequest) {
   let panchanga: Record<string, unknown> | null = null;
   let card: Record<string, unknown> | null = null;
   let translations: Record<string, string> = { ...MOCK_TRANSLATIONS };
+  let dbError: string | null = null;
 
   try {
+    // Query panchanga from Supabase
     const pRes = await supabaseServer.from('panchanga').select('*').eq('date', dateStr).maybeSingle();
+    if (pRes.error) dbError = `panchanga: ${pRes.error.message}`;
     if (pRes.data) panchanga = pRes.data;
+
+    // Query today's mantra from Supabase (rotate based on date for variety)
+    const { count } = await supabaseServer.from('mantras').select('*', { count: 'exact', head: true });
+    const totalMantras = count || 1;
+    // Pick a mantra based on the date to give daily variety
+    const dateNum = parseInt(dateStr.replace(/-/g, ''), 10) || 0;
+    const mantraIndex = (dateNum % totalMantras);
 
     const mRes = await supabaseServer
       .from('mantras')
-      .select('id,devanagari,iast,english,source')
-      .eq('id', 'gita-2.47')
+      .select('id,devanagari,iast,english,source,category,type')
+      .range(mantraIndex, mantraIndex)
       .maybeSingle();
 
-    if (mRes.data) {
+    if (mRes.error) dbError = (dbError ? dbError + '; ' : '') + `mantras: ${mRes.error.message}`;
+    
+    if (mRes.data && mRes.data.id) {
       card = mRes.data;
-      const tRes = await supabaseServer.from('translations').select('lang,text').eq('content_id', (card as any).id); // eslint-disable-line @typescript-eslint/no-explicit-any
+      const tRes = await supabaseServer.from('translations').select('lang,text').eq('content_id', (card as any).id);
+      if (tRes.error) dbError = (dbError ? dbError + '; ' : '') + `translations: ${tRes.error.message}`;
       if (tRes.data?.length) {
         translations = {};
         (tRes.data as { lang: string; text: string }[]).forEach((t) => (translations[t.lang] = t.text));
       }
     } else {
       card = AUTHENTIC_GITA_247;
+      dbError = (dbError ? dbError + '; ' : '') + 'mantras: no row found';
     }
-  } catch {
+    
+    // Log Supabase connectivity status
+    if (dbError && !panchanga) {
+      console.warn('[daily] Supabase fallback — using mocks. Errors:', dbError);
+    }
+  } catch (e: any) {
+    console.error('[daily] Supabase exception:', e?.message || e);
     card = AUTHENTIC_GITA_247;
+    dbError = `exception: ${e?.message || 'unknown'}`;
   }
 
   const free_card: DailyPayload['free_card'] = card
