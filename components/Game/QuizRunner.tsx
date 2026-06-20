@@ -27,7 +27,8 @@ export function QuizRunner({ questions, onFinish }: Props) {
     setSelected(i);
 
     const isCorrect = i === q.answer;
-    if (isCorrect) setCorrectCount((c) => c + 1);
+    const newCount = correctCount + (isCorrect ? 1 : 0);
+    if (isCorrect) setCorrectCount(newCount);
 
     setTimeout(() => {
       const next = idx + 1;
@@ -37,7 +38,7 @@ export function QuizRunner({ questions, onFinish }: Props) {
       } else {
         setDone(true);
         const elapsed = Math.floor((Date.now() - start) / 1000);
-        onFinish(correctCount + (isCorrect ? 1 : 0), questions.length, elapsed);
+        onFinish(newCount, questions.length, elapsed);
       }
     }, 700);
   }

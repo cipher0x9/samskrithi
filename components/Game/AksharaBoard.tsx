@@ -19,14 +19,15 @@ export function AksharaBoard({ devanagari, onComplete }: Props) {
   function placeTile(tile: string, slotIndex: number) {
     setSlots((prev) => {
       const next = [...prev];
-      // return previous occupant to pool if any
       const prevTile = next[slotIndex];
-      if (prevTile) {
-        setPool((p) => [...p, prevTile]);
-      }
       next[slotIndex] = tile;
-      // remove from pool
-      setPool((p) => p.filter((t, i) => !(t === tile && i === p.indexOf(tile))));
+      setPool((p) => {
+        const np = [...p];
+        if (prevTile) np.push(prevTile);
+        const i = np.indexOf(tile);
+        if (i >= 0) np.splice(i, 1);
+        return np;
+      });
       return next;
     });
   }

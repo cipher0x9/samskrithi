@@ -38,6 +38,8 @@ export function WisdomPopup({ isOpen, onClose, lang }: WisdomPopupProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
+    // sync language prop change to internal without cascading in mount
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLanguage(normalizeLanguage(lang));
   }, [lang]);
 

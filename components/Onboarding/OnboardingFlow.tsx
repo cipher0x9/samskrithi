@@ -35,12 +35,21 @@ export function OnboardingFlow({ onComplete, initialName }: Props) {
 
   // Prefill from Telegram on mount (first_name + language_code)
   useEffect(() => {
+    let did = false;
     try {
       const tg = (window as { Telegram?: { WebApp?: { initDataUnsafe?: { user?: { first_name?: string; language_code?: string } }; initData?: string } } }).Telegram?.WebApp;
       if (tg?.initDataUnsafe?.user) {
         const u = tg.initDataUnsafe.user;
-        if (u.first_name && !initialName) setName(u.first_name);
-        if (u.language_code) setLang(u.language_code === 'hi' || u.language_code === 'te' ? u.language_code : 'en');
+        if (u.first_name && !initialName && !did) {
+          did = true;
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setName(u.first_name);
+        }
+        if (u.language_code) {
+          const code = u.language_code === 'hi' || u.language_code === 'te' ? u.language_code : 'en';
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setLang(code);
+        }
       }
       // If no TG, try quick auto tz hint
       if (!tzLabel) {
@@ -56,7 +65,7 @@ export function OnboardingFlow({ onComplete, initialName }: Props) {
     } catch {
       /* ignore */
     }
-  }, [initialName, tzLabel]);
+  }, [initialName]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   function getInitData(): string {
     return (
@@ -95,11 +104,17 @@ export function OnboardingFlow({ onComplete, initialName }: Props) {
           prefs,
         }),
       });
-      const json = await res.json();
-      if (!json.ok && !json._dev) throw new Error(json.error || 'save failed');
-    } catch (e: any) {
-      // Still allow flow to finish in dev
-      if (process.env.NODE_ENV === 'production') {
+      const json = await res.json().catch(() => ({}));
+      if (!json.ok && !json._dev && initData) {
+        // block only if real auth attempt failed; guest continues
+        if (process.env.NODE_ENV === 'production') {
+          setError('Could not save. Please try again.');
+          setSaving(false);
+          return;
+        }
+      }
+    } catch {
+      if (process.env.NODE_ENV === 'production' && initData) {
         setError('Could not save. Please try again.');
         setSaving(false);
         return;

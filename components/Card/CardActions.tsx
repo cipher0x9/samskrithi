@@ -50,10 +50,10 @@ export function CardActions({ mantraId, mantraText, iast, translation, onSave }:
 
   return (
     <div className="flex items-center gap-3 text-base">
-      <button onClick={speak} aria-label="Play Sanskrit audio" className="hover:text-[#ff6b35]" title="Play">🔊</button>
-      <button onClick={copy} aria-label="Copy text" className="hover:text-[#ff6b35]" title="Copy">📋</button>
-      <button onClick={() => { onSave?.(); }} aria-label="Save to collection" className="hover:text-[#ff6b35]" title="Save">💾</button>
-      <button onClick={share} aria-label="Share" className="hover:text-[#ff6b35]" title="Share">🔗</button>
+      <button onClick={(e) => { e.stopPropagation(); speak(); }} aria-label="Play Sanskrit audio" className="hover:text-[#ff6b35]" title="Play">🔊</button>
+      <button onClick={(e) => { e.stopPropagation(); copy(); }} aria-label="Copy text" className="hover:text-[#ff6b35]" title="Copy">📋</button>
+      <button onClick={(e) => { e.stopPropagation(); onSave?.(); }} aria-label="Save to collection" className="hover:text-[#ff6b35]" title="Save">💾</button>
+      <button onClick={(e) => { e.stopPropagation(); share(); }} aria-label="Share" className="hover:text-[#ff6b35]" title="Share">🔗</button>
     </div>
   );
 }

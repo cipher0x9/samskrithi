@@ -10,12 +10,16 @@ import { MiniAppShell } from '@/components/Layout/MiniAppShell';
 import { getTodayISO } from '@/lib/utils';
 import { needsOnboarding } from '@/lib/utils';
 import { OnboardingFlow } from '@/components/Onboarding/OnboardingFlow';
+import { WeekView } from '@/components/Dashboard/WeekView';
+import { SamSkrithiRobo } from '@/components/Robo/SamSkrithiRobo';
 import type { DailyPayload } from '@/lib/panchanga';
 
 export default function Dashboard() {
   const [data, setData] = useState<DailyPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [tzOffset, setTzOffset] = useState<number | null>(null);
+  const [weekDays, setWeekDays] = useState<Array<{date: string; panchanga?: {tithi?: string; nakshatra?: string}; is_festival?: boolean; special_note?: string | null}>>([]);
+  const [hasOnboarded, setHasOnboarded] = useState(false);
 
   const getInitData = (): string => {
     return (
@@ -35,21 +39,26 @@ export default function Dashboard() {
 
       const res = await fetch(`/api/daily?${params.toString()}`);
       const json = await res.json();
-      setData(json);
+      if (res.ok && json && json.date) {
+        setData(json);
+      } else {
+        throw new Error('bad response');
+      }
     } catch {
       const fallbackDate = getTodayISO();
+      const effTz = forcedTz ?? tzOffset ?? 0;
       setData({
         date: fallbackDate,
-        panchanga: { date: fallbackDate, tithi: 'कृष्ण नवमी', nakshatra: 'अश्विनी' },
+        panchanga: { date: fallbackDate, tithi: 'कृष्ण नवमी', nakshatra: 'अश्विनी', deity_of_day: 'Daily' },
         free_card: {
           id: 'gita-2.47',
-          devanagari: 'कर्मण्येवाधिकारस्ते मा फलेषु कदाचन। मा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वkarmāṇi।।2.47।।',
+          devanagari: 'कर्मण्येवाधिकारस्ते मा फलेषु कदाचन। मा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि।।2.47।।',
           iast: 'karmaṇy-evādhikāras te mā phaleṣhu kadāchana mā karma-phala-hetur bhūr mā te saṅgo ’stvakarmaṇi',
           source: 'Bhagavad Gita 2.47',
           translations: { en: 'You have the right to work only, but never to its fruits.' },
         },
         challenges: [{ mode: 'akshara', seed: 'gita-2.47' }, { mode: 'quiz', seed: 'panchanga' }],
-        user: { streak_current: 0, xp: 0, level: 'Prarambhika', tz_offset: 0, prefs: {} },
+        user: { streak_current: 0, xp: 0, level: 'Prarambhika', tz_offset: effTz, prefs: {} },
       });
     } finally {
       setLoading(false);
@@ -57,19 +66,42 @@ export default function Dashboard() {
   }, [tzOffset]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
-  }, [load]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const eff = tzOffset ?? 0;
+    const params = new URLSearchParams();
+    if (eff != null) params.set('tz_offset', String(eff));
+    fetch(`/api/weekly?${params.toString()}`).then(r => r.json()).then(d => {
+      if (d && Array.isArray(d.days)) {
+        setWeekDays(d.days);
+      }
+    }).catch(() => {
+      // minimal 7 day mock so WeekView shows
+      const base = new Date();
+      const mock = Array.from({length:7}, (_,i) => {
+        const d = new Date(base); d.setDate(base.getDate()+i);
+        const ds = d.toISOString().slice(0,10);
+        return { date: ds, panchanga: { tithi: '—', nakshatra: '—' } };
+      });
+      setWeekDays(mock);
+    });
+  }, [tzOffset]);
 
   const handleOnboardComplete = (newTz: number) => {
     setTzOffset(newTz);
+    setHasOnboarded(true);
     // Reload with the new tz so dashboard shows correct local date + panchanga immediately
     load(newTz);
   };
 
   const card = data?.free_card;
-  const user = (data?.user as any) || { streak_current: 0, xp: 0, level: 'Prarambhika', tz_offset: 0, prefs: {} }; // eslint-disable-line @typescript-eslint/no-explicit-any
+  const user = (data?.user as {streak_current?: number; xp?: number; level?: string; tz_offset?: number; prefs?: Record<string, unknown>; first_name?: string}) || { streak_current: 0, xp: 0, level: 'Prarambhika', tz_offset: 0, prefs: {} };
 
-  const shouldOnboard = needsOnboarding(user);
+  const shouldOnboard = needsOnboarding(user) && !hasOnboarded && tzOffset == null;
 
   // Local date string for header (uses the tz-resolved date returned by API)
   const headerDateStr = data?.date
@@ -80,7 +112,7 @@ export default function Dashboard() {
     return (
       <MiniAppShell title="संस्‍कृति • SamSkrithi">
         <div className="pt-2">
-          <OnboardingFlow onComplete={handleOnboardComplete} initialName={(user as any)?.first_name} />
+          <OnboardingFlow onComplete={handleOnboardComplete} initialName={user.first_name} />
         </div>
         {/* No BottomNav during first-time onboarding */}
       </MiniAppShell>
@@ -97,8 +129,8 @@ export default function Dashboard() {
             <div className="text-2xl font-semibold tracking-tight text-[#d4a853]">Today’s Wisdom</div>
           </div>
           <div className="text-right">
-            <StreakFlame current={user.streak_current} />
-            <div className="mt-1"><LevelBadge xp={user.xp} /></div>
+            <StreakFlame current={user.streak_current ?? 0} />
+            <div className="mt-1"><LevelBadge xp={user.xp ?? 0} /></div>
           </div>
         </div>
 
@@ -109,7 +141,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Card */}
+        {/* Card (no outer link to avoid blocking inner lang tabs/buttons) */}
         {loading ? (
           <WisdomCard
             mantra={{ id: '', devanagari: '', source: '' }}
@@ -117,17 +149,15 @@ export default function Dashboard() {
             isLoading
           />
         ) : card ? (
-          <Link href={`/cards/${String((card as unknown as {id?:string}).id || '')}`}>
-            <WisdomCard
-              mantra={{
-                id: String((card as unknown as {id?:string}).id || ''),
-                devanagari: String((card as unknown as {devanagari?:string}).devanagari || ''),
-                iast: (card as unknown as {iast?:string}).iast,
-                source: String((card as unknown as {source?:string}).source || ''),
-              }}
-              translations={(card as unknown as {translations?: Record<string,string>}).translations || {}}
-            />
-          </Link>
+          <WisdomCard
+            mantra={{
+              id: String((card as unknown as {id?:string}).id || ''),
+              devanagari: String((card as unknown as {devanagari?:string}).devanagari || ''),
+              iast: (card as unknown as {iast?:string}).iast,
+              source: String((card as unknown as {source?:string}).source || ''),
+            }}
+            translations={(card as unknown as {translations?: Record<string,string>}).translations || {}}
+          />
         ) : null}
 
         {/* Daily Challenges */}
@@ -148,6 +178,9 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Week scroller */}
+        <WeekView days={weekDays} />
+
         {/* Quick links */}
         <div className="mt-6 flex flex-wrap gap-2">
           <Link href="/garden" className="btn btn-ghost text-sm">🌱 View Garden</Link>
@@ -158,6 +191,7 @@ export default function Dashboard() {
         <div className="h-10" />
       </div>
 
+      <SamSkrithiRobo />
       <BottomNav />
     </MiniAppShell>
   );

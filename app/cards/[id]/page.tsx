@@ -12,9 +12,31 @@ export default function CardViewer() {
   const params = useParams<{ id: string }>();
   const id = params?.id || 'gita-2.47';
   const [card, setCard] = useState<Record<string, unknown> | null>(null);
+  const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/cards/${id}?all=true`).then(r => r.json()).then(setCard);
+    let active = true;
+    fetch(`/api/cards/${id}?all=true`).then(r => {
+      if (!r.ok) throw new Error('load fail');
+      return r.json();
+    }).then((d) => {
+      if (active) {
+        setCard(d);
+        setErr(null);
+      }
+    }).catch(() => {
+      if (active) {
+        setErr('Could not load card');
+        setCard({
+          id: 'gita-2.47',
+          devanagari: 'कर्मण्येवाधिकारस्ते मा फलेषु कदाचन। मा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि।।2.47।।',
+          iast: 'karmaṇy-evādhikāras te mā phaleṣhu kadāchana mā karma-phala-hetur bhūr mā te saṅgo ’stvakarmaṇi',
+          source: 'Bhagavad Gita 2.47',
+          translations: { en: 'You have the right to work only, but never to its fruits.' }
+        });
+      }
+    });
+    return () => { active = false; };
   }, [id]);
 
   return (
@@ -30,9 +52,8 @@ export default function CardViewer() {
               source: String((card as unknown as {source?: string}).source || ''),
             }}
             translations={(card as unknown as {translations?: Record<string, string>}).translations || {}}
-            onSave={() => {
-              // TODO: POST /api/cards/save + optimistic
-            }}
+            onSave={() => {}}
+            error={err}
           />
         ) : (
           <div className="card h-64 animate-pulse" />

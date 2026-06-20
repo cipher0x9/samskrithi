@@ -115,7 +115,7 @@ export async function GET(req: NextRequest) {
     },
     free_card,
     challenges,
-    user: user || { streak_current: 0, xp: 0, level: 'Prarambhika', tz_offset: 0, prefs: {} },
+    user: user || { streak_current: 0, xp: 0, level: 'Prarambhika', tz_offset: (tzStr ? parseInt(tzStr,10) || 0 : 0), prefs: {} },
   };
 
   return NextResponse.json(payload);

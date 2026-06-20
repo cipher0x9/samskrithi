@@ -21,6 +21,7 @@ function AksharaInner() {
   const [verse, setVerse] = useState(FALLBACK_VERSE);
   const [showScore, setShowScore] = useState(false);
   const [scoreData, setScoreData] = useState({ xp: 0, streak: 0, acc: 0 });
+  const [guestNote, setGuestNote] = useState('');
 
   useEffect(() => {
     fetch(`/api/cards/${seed}`).then(r => r.json()).then(d => {
@@ -29,20 +30,16 @@ function AksharaInner() {
   }, [seed]);
 
   async function handleComplete(accuracy: number, elapsed: number) {
+    const initData = ((window as { Telegram?: { WebApp?: { initData?: string } } }).Telegram?.WebApp?.initData) || '';
     const res = await fetch('/api/games/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        initData: ((window as { Telegram?: { WebApp?: { initData?: string } } }).Telegram?.WebApp?.initData) || '',
-        mode: 'akshara',
-        seed: verse.id,
-        elapsed_sec: elapsed,
-        accuracy,
-        meta: { verse_id: verse.id },
-      }),
+      body: JSON.stringify({ initData, mode: 'akshara', seed: verse.id, elapsed_sec: elapsed, accuracy, meta: { verse_id: verse.id } }),
     });
-    const json = await res.json();
-    setScoreData({ xp: json.xp_earned || 50, streak: json.new_streak || 1, acc: accuracy });
+    const json = await res.json().catch(() => ({}));
+    const isGuest = !res.ok || !initData || json._dev;
+    setScoreData({ xp: json.xp_earned || Math.floor(accuracy * 60) || 40, streak: json.new_streak || 1, acc: accuracy });
+    setGuestNote(isGuest ? 'Guest mode — score not saved. Login via Telegram to save progress.' : '');
     setShowScore(true);
   }
 
@@ -61,8 +58,9 @@ function AksharaInner() {
         xpEarned={scoreData.xp}
         streak={scoreData.streak}
         accuracy={scoreData.acc}
-        onClose={() => { setShowScore(false); window.location.href = '/'; }}
+        onClose={() => { setShowScore(false); setGuestNote(''); window.location.href = '/'; }}
       />
+      {guestNote && showScore && <div className="text-center text-xs text-[#ff6b35] mt-2">{guestNote}</div>}
 
       <BottomNav />
     </MiniAppShell>

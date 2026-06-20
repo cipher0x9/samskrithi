@@ -108,7 +108,7 @@ export function WisdomCard({
               key={l.code}
               role="tab"
               aria-selected={lang === l.code}
-              onClick={() => setLang(l.code)}
+              onClick={(e) => { e.stopPropagation(); setLang(l.code); }}
               className={`lang-btn ${lang === l.code ? 'selected' : ''}`}
             >
               {l.label}

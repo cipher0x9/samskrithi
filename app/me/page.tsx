@@ -11,7 +11,7 @@ export default function MePage() {
   const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
-    fetch('/api/me').then(r => r.json()).then(d => setProfile(d));
+    fetch('/api/me').then(r => r.json()).then(d => setProfile(d)).catch(() => setProfile(null));
   }, []);
 
   const user = (profile?.user as any) || { first_name: 'Seeker', xp: 120, streak_current: 4, level: 'Madhyama', tier: 'free', tz_offset: 0, prefs: {} }; // eslint-disable-line @typescript-eslint/no-explicit-any
