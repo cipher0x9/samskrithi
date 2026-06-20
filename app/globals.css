@@ -409,6 +409,51 @@ hr.divider {
   margin: 18px 0;
 }
 
+/* === QUEST / EPIC RPG THEME === */
+.quest-scene {
+  padding-bottom: 12px;
+}
+
+.choice-btn {
+  transition: transform 0.05s ease, border-color 0.1s ease, background 0.1s;
+}
+.choice-btn:hover,
+.choice-btn:active {
+  border-color: #d4a853;
+  background: #1a2038;
+}
+
+.vocab-pill {
+  font-family: var(--font-devanagari);
+  font-size: 14px;
+  transition: all 0.1s ease;
+}
+.vocab-pill:active {
+  transform: scale(0.97);
+  border-color: #d4a853;
+}
+
+/* Battle overrides */
+.battle-root {
+  background: #0a0e27;
+  border: 1px solid #3a1f1f;
+  padding: 14px;
+  border-radius: 16px;
+}
+.battle-opt {
+  background: #2a1f1f;
+  border-color: #4a2a2a;
+}
+.battle-opt:hover {
+  border-color: #c33;
+  background: #331f1f;
+}
+
+/* Deep epic accents */
+.epic-gold {
+  color: #d4a853;
+}
+
 .text-gold { color: var(--gold); }
 .text-amber { color: var(--amber); }
 .text-muted { color: var(--text-muted); }

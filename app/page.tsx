@@ -183,6 +183,7 @@ export default function Dashboard() {
 
         {/* Quick links */}
         <div className="mt-6 flex flex-wrap gap-2">
+          <Link href="/games/quest" className="btn btn-ghost text-sm">🗺️ Epic Quest</Link>
           <Link href="/garden" className="btn btn-ghost text-sm">🌱 View Garden</Link>
           <Link href="/temple" className="btn btn-ghost text-sm">🛕 Temple Quest</Link>
           <Link href="/me" className="btn btn-ghost text-sm">👤 My Profile</Link>
